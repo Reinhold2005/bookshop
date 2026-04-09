@@ -38,8 +38,14 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 # Install Composer dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-exif --ignore-platform-req=ext-gd
 
-# Create .env file
-RUN cp .env.example .env
+# Create .env file manually
+RUN echo "APP_ENV=production" > .env
+RUN echo "APP_DEBUG=false" >> .env
+RUN echo "APP_URL=https://bookshop22.onrender.com" >> .env
+RUN echo "APP_KEY=" >> .env
+RUN echo "DB_CONNECTION=pgsql" >> .env
+RUN echo "SESSION_DRIVER=file" >> .env
+RUN echo "CACHE_DRIVER=file" >> .env
 
 # Generate application key
 RUN php artisan key:generate --force
