@@ -1,31 +1,27 @@
 services:
   - type: web
     name: bookshop
-    runtime: php
-    buildCommand: composer install --optimize-autoloader --no-dev && npm install && npm run build
-    startCommand: php artisan serve --host=0.0.0.0 --port=10000
+    runtime: image
+    repo: https://github.com/Reinhold2005/bookshop
+    plan: free
     envVars:
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: false
-      - key: APP_KEY
-        sync: false
       - key: APP_URL
         value: https://bookshop.onrender.com
       - key: DB_CONNECTION
         value: pgsql
-      - key: DB_HOST
-        sync: false
-      - key: DB_PORT
-        value: 3306
-      - key: DB_DATABASE
-        sync: false
-      - key: DB_USERNAME
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
-      - key: STRIPE_KEY
-        sync: false
-      - key: STRIPE_SECRET
-        sync: false
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_DRIVER
+        value: file
+    buildCommand: |
+      curl -s https://getcomposer.org/installer | php
+      php composer.phar install --optimize-autoloader --no-dev
+      cp .env.example .env
+      php artisan key:generate
+      npm install
+      npm run build
+    startCommand: php artisan serve --host=0.0.0.0 --port=10000
