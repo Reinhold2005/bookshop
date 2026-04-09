@@ -23,20 +23,23 @@ RUN a2enmod rewrite
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
-WORKDIR /var/www/html
+WORKDIR /var/www
 
-# Copy ALL application files
+# Copy entire application
 COPY . .
+
+# Set the document root to the public directory
+ENV APACHE_DOCUMENT_ROOT /var/www/public
+
+# Update Apache configuration
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Install Composer dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-exif --ignore-platform-req=ext-gd
 
-# Create .env file manually
-RUN touch .env
-RUN echo "APP_ENV=production" >> .env
-RUN echo "APP_DEBUG=false" >> .env
-RUN echo "APP_URL=https://bookshop22.onrender.com" >> .env
-RUN echo "APP_KEY=" >> .env
+# Create .env file
+RUN cp .env.example .env
 
 # Generate application key
 RUN php artisan key:generate --force
@@ -45,15 +48,15 @@ RUN php artisan key:generate --force
 RUN npm install || true
 
 # Set permissions
-RUN chown -R www-data:www-data storage bootstrap/cache
-RUN chmod -R 775 storage bootstrap/cache
+RUN chown -R www-data:www-data storage bootstrap/cache public
+RUN chmod -R 775 storage bootstrap/cache public
 
 # Optimize
 RUN php artisan config:cache --no-interaction || true
 RUN php artisan route:cache --no-interaction || true
 RUN php artisan view:cache --no-interaction || true
 
-# Set ServerName to suppress warning
+# Set ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 EXPOSE 80
