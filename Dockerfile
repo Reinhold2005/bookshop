@@ -39,6 +39,9 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 RUN echo "display_errors = On" >> /usr/local/etc/php/conf.d/errors.ini
 RUN echo "error_reporting = E_ALL" >> /usr/local/etc/php/conf.d/errors.ini
 
+# Set temp directory
+RUN echo "sys_temp_dir = /tmp" >> /usr/local/etc/php/conf.d/temp.ini
+
 # Install Composer dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-exif --ignore-platform-req=ext-gd
 
@@ -57,24 +60,31 @@ RUN php artisan key:generate --force
 # Install NPM dependencies
 RUN npm install || true
 
-# Set permissions
-RUN chown -R www-data:www-data storage bootstrap/cache public
-RUN chmod -R 775 storage bootstrap/cache public
-
-# Create required directories
+# Create all necessary directories
 RUN mkdir -p storage/framework/views
 RUN mkdir -p storage/framework/sessions
 RUN mkdir -p storage/framework/cache
+RUN mkdir -p storage/framework/testing
 RUN mkdir -p storage/logs
+RUN mkdir -p bootstrap/cache
+RUN mkdir -p public/build
 
-# Clear and optimize caches (skip view:clear)
+# Set permissions for storage and bootstrap
+RUN chown -R www-data:www-data storage bootstrap/cache public
+RUN chmod -R 775 storage bootstrap/cache public
+RUN chmod -R 777 storage/framework/views
+RUN chmod -R 777 storage/framework/sessions
+RUN chmod -R 777 storage/framework/cache
+RUN chmod -R 777 storage/logs
+RUN chmod -R 777 bootstrap/cache
+
+# Create .htaccess for public directory if not exists
+RUN touch public/.htaccess
+
+# Clear and optimize caches
 RUN php artisan config:clear || true
 RUN php artisan route:clear || true
 RUN php artisan cache:clear || true
-
-# Optimize (skip view:cache if fails)
-RUN php artisan config:cache || true
-RUN php artisan route:cache || true
 
 # Set ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
