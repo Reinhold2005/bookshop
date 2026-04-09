@@ -61,11 +61,20 @@ RUN npm install || true
 RUN chown -R www-data:www-data storage bootstrap/cache public
 RUN chmod -R 775 storage bootstrap/cache public
 
-# Clear all caches
-RUN php artisan config:clear
-RUN php artisan route:clear
-RUN php artisan view:clear
-RUN php artisan cache:clear
+# Create required directories
+RUN mkdir -p storage/framework/views
+RUN mkdir -p storage/framework/sessions
+RUN mkdir -p storage/framework/cache
+RUN mkdir -p storage/logs
+
+# Clear and optimize caches (skip view:clear)
+RUN php artisan config:clear || true
+RUN php artisan route:clear || true
+RUN php artisan cache:clear || true
+
+# Optimize (skip view:cache if fails)
+RUN php artisan config:cache || true
+RUN php artisan route:cache || true
 
 # Set ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
