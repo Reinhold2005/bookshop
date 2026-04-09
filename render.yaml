@@ -14,7 +14,7 @@ services:
       - key: APP_URL
         value: https://bookshop.onrender.com
       - key: DB_CONNECTION
-        value: mysql
+        value: pgsql
       - key: DB_HOST
         sync: false
       - key: DB_PORT
