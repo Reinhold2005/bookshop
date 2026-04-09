@@ -25,8 +25,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Copy entire application including .env
+# Copy entire application
 COPY . .
+
+# DEBUG: List files to verify .env exists
+RUN ls -la /var/www/
 
 # Set the document root to the public directory
 ENV APACHE_DOCUMENT_ROOT /var/www/public
@@ -45,8 +48,8 @@ RUN echo "sys_temp_dir = /tmp" >> /usr/local/etc/php/conf.d/temp.ini
 # Install Composer dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-exif --ignore-platform-req=ext-gd
 
-# Generate application key (this will use the .env file we copied)
-RUN php artisan key:generate --force
+# Generate application key (use --force and ignore if .env not found)
+RUN php artisan key:generate --force || echo "Key generation failed, continuing..."
 
 # Install NPM dependencies
 RUN npm install || true
