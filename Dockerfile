@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.4-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -25,14 +25,17 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
+# Copy composer files first
+COPY composer.json composer.lock ./
+
+# Install Composer dependencies (ignore platform requirements)
+RUN composer install --optimize-autoloader --no-dev --no-interaction --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-exif --ignore-platform-req=ext-gd
+
 # Copy application files
 COPY . .
 
-# Copy .env file if exists
-RUN if [ -f .env.example ] && [ ! -f .env ]; then cp .env.example .env; fi
-
-# Install Composer dependencies
-RUN composer install --optimize-autoloader --no-dev --no-interaction
+# Run post-install scripts
+RUN composer run-script post-autoload-dump --no-interaction
 
 # Install NPM dependencies and build
 RUN npm install
