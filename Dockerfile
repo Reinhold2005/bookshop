@@ -25,36 +25,32 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files first
-COPY composer.json composer.lock ./
-
-# Install Composer dependencies WITHOUT running scripts
-RUN composer install --optimize-autoloader --no-dev --no-interaction --no-scripts --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-exif --ignore-platform-req=ext-gd
-
-# Copy application files
+# Copy ALL application files first
 COPY . .
+
+# Install Composer dependencies
+RUN composer install --optimize-autoloader --no-dev --no-interaction --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-exif --ignore-platform-req=ext-gd
 
 # Create .env file from example if not exists
 RUN if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
 
-# Run post-install scripts manually
-RUN composer run-script post-autoload-dump --no-interaction || true
-
 # Install NPM dependencies and build
-RUN npm install || true
-RUN npm run build || true
+RUN npm install && npm run build
 
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
 RUN chmod -R 775 storage bootstrap/cache
 
-# Generate key (this will work after .env is created)
-RUN php artisan key:generate --force || true
+# Generate key
+RUN php artisan key:generate --force
 
-# Optimize (skip if fails)
+# Optimize
 RUN php artisan config:cache --no-interaction || true
 RUN php artisan route:cache --no-interaction || true
 RUN php artisan view:cache --no-interaction || true
+
+# Set ServerName to suppress warning
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 EXPOSE 80
 CMD ["apache2-foreground"]
