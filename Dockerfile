@@ -25,7 +25,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Copy entire application
+# Copy entire application including .env
 COPY . .
 
 # Set the document root to the public directory
@@ -45,9 +45,7 @@ RUN echo "sys_temp_dir = /tmp" >> /usr/local/etc/php/conf.d/temp.ini
 # Install Composer dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-exif --ignore-platform-req=ext-gd
 
-
-
-# Generate application key
+# Generate application key (this will use the .env file we copied)
 RUN php artisan key:generate --force
 
 # Install NPM dependencies
@@ -62,7 +60,7 @@ RUN mkdir -p storage/logs
 RUN mkdir -p bootstrap/cache
 RUN mkdir -p public/build
 
-# Set permissions for storage and bootstrap
+# Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache public
 RUN chmod -R 775 storage bootstrap/cache public
 RUN chmod -R 777 storage/framework/views
@@ -70,9 +68,6 @@ RUN chmod -R 777 storage/framework/sessions
 RUN chmod -R 777 storage/framework/cache
 RUN chmod -R 777 storage/logs
 RUN chmod -R 777 bootstrap/cache
-
-# Create .htaccess for public directory if not exists
-RUN touch public/.htaccess
 
 # Clear and optimize caches
 RUN php artisan config:clear || true
