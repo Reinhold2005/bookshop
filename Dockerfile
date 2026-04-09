@@ -1,4 +1,4 @@
-FROM php:8.3-apache
+FROM php:8.2-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -9,7 +9,9 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    libpq-dev
+    libpq-dev \
+    nodejs \
+    npm
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd pdo_pgsql
@@ -26,8 +28,15 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Install dependencies
-RUN composer install --optimize-autoloader --no-dev --ignore-platform-req=ext-pcntl
+# Copy .env file if exists
+RUN if [ -f .env.example ] && [ ! -f .env ]; then cp .env.example .env; fi
+
+# Install Composer dependencies
+RUN composer install --optimize-autoloader --no-dev --no-interaction
+
+# Install NPM dependencies and build
+RUN npm install
+RUN npm run build
 
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
@@ -35,6 +44,11 @@ RUN chmod -R 775 storage bootstrap/cache
 
 # Generate key
 RUN php artisan key:generate
+
+# Optimize
+RUN php artisan config:cache
+RUN php artisan route:cache
+RUN php artisan view:cache
 
 EXPOSE 80
 CMD ["apache2-foreground"]
