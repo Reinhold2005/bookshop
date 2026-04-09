@@ -34,8 +34,8 @@ RUN composer install --optimize-autoloader --no-dev --no-interaction --ignore-pl
 # Create .env file from example if not exists
 RUN if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
 
-# Install NPM dependencies and build
-RUN npm install && npm run build
+# Install NPM dependencies (skip build if no build script)
+RUN npm install || true
 
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
