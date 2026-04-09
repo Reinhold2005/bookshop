@@ -35,9 +35,10 @@ ENV APACHE_DOCUMENT_ROOT /var/www/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Enable error logging
+# Enable FULL error reporting
 RUN echo "display_errors = On" >> /usr/local/etc/php/conf.d/errors.ini
 RUN echo "error_reporting = E_ALL" >> /usr/local/etc/php/conf.d/errors.ini
+RUN echo "log_errors = On" >> /usr/local/etc/php/conf.d/errors.ini
 
 # Install Composer dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-exif --ignore-platform-req=ext-gd
@@ -51,6 +52,7 @@ RUN mkdir -p storage/framework/views storage/framework/sessions storage/framewor
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache public
 RUN chmod -R 775 storage bootstrap/cache public
+RUN chmod -R 777 storage/logs
 
 # Set ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
