@@ -25,24 +25,28 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy ALL application files first
+# Copy ALL application files
 COPY . .
 
 # Install Composer dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-exif --ignore-platform-req=ext-gd
 
-# Create .env file from example if not exists
-RUN if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
+# Create .env file manually
+RUN touch .env
+RUN echo "APP_ENV=production" >> .env
+RUN echo "APP_DEBUG=false" >> .env
+RUN echo "APP_URL=https://bookshop22.onrender.com" >> .env
+RUN echo "APP_KEY=" >> .env
 
-# Install NPM dependencies (skip build if no build script)
+# Generate application key
+RUN php artisan key:generate --force
+
+# Install NPM dependencies
 RUN npm install || true
 
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
 RUN chmod -R 775 storage bootstrap/cache
-
-# Generate key
-RUN php artisan key:generate --force
 
 # Optimize
 RUN php artisan config:cache --no-interaction || true
