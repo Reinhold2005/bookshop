@@ -1,79 +1,64 @@
-📚 Online Bookshop
-Project Overview
+# 📚 Online Bookshop
+
+## Project Overview
 A fully functional e-commerce web application where customers can browse, search, add to cart/wishlist, and purchase books online. Includes an admin panel to manage books, orders, users, and sales reports.
 
-Technologies Used
-Backend
-PHP 8.5.4
+## Technologies Used
 
-Laravel 13.3.0
+### Backend
+- **PHP** 8.5.4
+- **Laravel** 13.3.0
+- **MySQL** (development) / **PostgreSQL** (production)
+- **Stripe API** - payment processing
 
-MySQL (development) / PostgreSQL (production)
+### Frontend
+- **HTML5**, **CSS3**, **Tailwind CSS** 3.4.13
+- **JavaScript (ES6)** + **AJAX** for real‑time cart/wishlist updates
+- **Font Awesome** icons
 
-Stripe API - payment processing
+### Development & Deployment
+- **XAMPP** (local)
+- **Composer** / **NPM**
+- **Git** + **GitHub**
+- **Render** (deployment)
 
-Frontend
-HTML5, CSS3, Tailwind CSS 3.4.13
+## Key Features
 
-JavaScript (ES6) + AJAX for real‑time cart/wishlist updates
+### Customer Side
+- User registration & login (Laravel Breeze)
+- Browse books with category filter & search
+- Sorting (newest, price, title)
+- Shopping cart – add/remove, update quantity (AJAX)
+- Floating cart sidebar with real‑time updates
+- Wishlist – toggle heart (AJAX), move to cart
+- Checkout – delivery address, delivery method (standard/express/next‑day)
+- Payment – Stripe (credit card), Cash on Delivery, Bank Transfer
+- Order history & cancellation (within 7 days)
+- Book ratings (1–5 stars)
 
-Font Awesome icons
+### Admin Side (separate login)
+- Dashboard with statistics (books, orders, revenue, pending cancellations)
+- Full CRUD for books (add, edit, delete, low‑stock alerts)
+- Order management – view, update status, generate tracking numbers
+- Cancel request approval & refund processing
+- Sales reports with CSV export
+- Low stock email alerts
 
-Development & Deployment
-XAMPP (local)
+## Challenges & Solutions
 
-Composer / NPM
+| Challenge | Solution |
+|-----------|----------|
+| PHP version mismatch (Laravel 13 requires PHP 8.4, XAMPP used 8.2) | Upgraded PHP manually and adjusted `composer.json` to allow PHP 8.3, then switched to PHP 8.4 in production Dockerfile. |
+| AJAX cart/wishlist returning raw JSON instead of updating UI | Removed `<form>` tags around wishlist buttons; used `fetch` with proper headers and `preventDefault()`. |
+| Duplicate `cancellation_requested` text in admin orders table | Created accessor `getFormattedStatusAttribute()` to display “Cancellation Requested”. |
+| Deploying Laravel on Render (Docker build failures) | Switched from Docker to Render’s native PHP runtime; used `--ignore-platform-req` flags for Composer. |
+| Missing `.env` file on server | Added `.env` to repository (with dummy values) and set real credentials via Render environment variables. |
+| Heart icon not toggling correctly | Fixed controller to return JSON only and added JavaScript to toggle `fas`/`far` classes. |
+| Order cancellation refund amount not saving | Added `refund_amount` to `$fillable` in Order model and updated controller logic. |
 
-Git + GitHub
+## Installation (Local)
 
-Render (deployment)
-
-Key Features
-Customer Side
-User registration & login (Laravel Breeze)
-
-Browse books with category filter & search
-
-Sorting (newest, price, title)
-
-Shopping cart – add/remove, update quantity (AJAX)
-
-Floating cart sidebar with real‑time updates
-
-Wishlist – toggle heart (AJAX), move to cart
-
-Checkout – delivery address, delivery method (standard/express/next‑day)
-
-Payment – Stripe (credit card), Cash on Delivery, Bank Transfer
-
-Order history & cancellation (within 7 days)
-
-Book ratings (1–5 stars)
-
-Admin Side (separate login)
-Dashboard with statistics (books, orders, revenue, pending cancellations)
-
-Full CRUD for books (add, edit, delete, low‑stock alerts)
-
-Order management – view, update status, generate tracking numbers
-
-Cancel request approval & refund processing
-
-Sales reports with CSV export
-
-Low stock email alerts
-
-Challenges & Solutions
-Challenge	Solution
-PHP version mismatch (Laravel 13 requires PHP 8.4, XAMPP used 8.2)	Upgraded PHP manually and adjusted composer.json to allow PHP 8.3, then switched to PHP 8.4 in production Dockerfile.
-AJAX cart/wishlist returning raw JSON instead of updating UI	Removed <form> tags around wishlist buttons; used fetch with proper headers and preventDefault().
-Duplicate cancellation_requested text in admin orders table	Created accessor getFormattedStatusAttribute() to display “Cancellation Requested”.
-Deploying Laravel on Render (Docker build failures)	Switched from Docker to Render’s native PHP runtime; used --ignore-platform-req flags for Composer.
-Missing .env file on server	Added .env to repository (with dummy values) and set real credentials via Render environment variables.
-Heart icon not toggling correctly	Fixed controller to return JSON only and added JavaScript to toggle fas/far classes.
-Order cancellation refund amount not saving	Added refund_amount to $fillable in Order model and updated controller logic.
-Installation (Local)
-bash
+```bash
 git clone https://github.com/yourusername/bookshop.git
 cd bookshop
 composer install
@@ -83,37 +68,6 @@ php artisan key:generate
 # Configure database in .env
 php artisan migrate --seed
 php artisan serve
-Deployment (Render)
-Push code to GitHub.
-
-Create new Web Service on Render, connect repository.
-
-Set environment:
-
-Build Command: composer install --optimize-autoloader --no-dev --ignore-platform-req=ext-pcntl && npm install && npm run build
-
-Start Command: php artisan serve --host=0.0.0.0 --port=10000
-
-Add PostgreSQL database and link DATABASE_URL.
-
-Add environment variables: APP_KEY, APP_URL, STRIPE_KEY, STRIPE_SECRET, etc.
-
-Credentials (Demo)
-Customer – register or use any email/password
-
-Admin – admin@bookshop.com / admin123
-
-Future Improvements
-Book reviews with text comments
-
-PDF invoice generation
-
-Social login (Google, Facebook)
-
-Email notifications for low stock
-
-
-
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
